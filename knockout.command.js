@@ -1,4 +1,4 @@
-﻿// By: Hans Fjällemark and John Papa
+// By: Hans Fjällemark and John Papa
 // https://github.com/CodeSeven/KoLite
 
 (function (factory) {
@@ -20,20 +20,20 @@
         };
     };
 
-    exports.command = function(options) {
+    exports.command = function (options) {
         var
-            self = function() {
+            self = function () {
                 return self.execute.apply(this, arguments);
             },
             canExecuteDelegate = options.canExecute,
             executeDelegate = options.execute;
 
-        self.canExecute = ko.computed(function() {
+        self.canExecute = ko.computed(function () {
             return canExecuteDelegate ? canExecuteDelegate() : true;
         });
 
         self.execute = function (arg1, arg2) {
-             // Needed for anchors since they don't support the disabled state
+            // Needed for anchors since they don't support the disabled state
             if (!self.canExecute()) return
 
             return executeDelegate.apply(this, [arg1, arg2]);
@@ -42,26 +42,28 @@
         return self;
     };
 
-    exports.asyncCommand = function(options) {
+    exports.asyncCommand = function (options) {
         var
-            self = function() {
+            self = function () {
                 return self.execute.apply(this, arguments);
             },
             canExecuteDelegate = options.canExecute,
             executeDelegate = options.execute,
 
-            completeCallback = function() {
+            completeCallback = function () {
                 self.isExecuting(false);
+                // Force a re-evaluate of the can execute.
+                var canExecute = self.canExecute();
             };
 
         self.isExecuting = ko.observable();
 
-        self.canExecute = ko.computed(function() {
+        self.canExecute = ko.computed(function () {
             return canExecuteDelegate ? canExecuteDelegate(self.isExecuting()) : !self.isExecuting();
         });
 
         self.execute = function (arg1, arg2) {
-             // Needed for anchors since they don't support the disabled state
+            // Needed for anchors since they don't support the disabled state
             if (!self.canExecute()) return
 
             var args = []; // Allow for these arguments to be passed on to execute delegate
