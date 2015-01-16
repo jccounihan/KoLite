@@ -67,6 +67,14 @@
                     _lastCleanState(hashFunction(_objectToTrack));
                     _isInitiallyDirty(false);
                 };
+                
+                self.logState = function () {
+                    if (console && typeof console.log === "function") {
+                        console.log("LastCleanState: " + _lastCleanState());
+                        console.log("CurrentState: " + hashFunction(_objectToTrack));
+                    }
+                };
+                
                 return self;
             };
 
