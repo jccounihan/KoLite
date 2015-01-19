@@ -167,7 +167,10 @@
                 $(element).activityEx(false);
                 $(element).off("Indicator.stopped", updateCanExecute);
                 for (var command in commands) {
-                    subscriptions[command].dipose();
+                    var sub = subscriptions[command];
+                    if (sub && sub.dispose) {
+                        sub.dispose();
+                    }
                 }
             });
         },
