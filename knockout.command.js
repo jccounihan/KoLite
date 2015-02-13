@@ -1,3 +1,4 @@
+// taken from: https://raw.githubusercontent.com/jccounihan/KoLite/master/knockout.command.js
 
 // Originally By: Hans Fj�llemark and John Papa
 // https://github.com/CodeSeven/KoLite
@@ -47,18 +48,19 @@
     };
 
     exports.asyncCommand = function (options) {
-        var
-            self = function () {
-                return self.execute.apply(this, arguments);
-            },
-            canExecuteDelegate = options.canExecute,
-            executeDelegate = options.execute,
+        var self = function () {
+            return self.execute.apply(this, arguments);
+        }
+        var canExecuteDelegate = options.canExecute
+        var executeDelegate = options.execute;
 
-            completeCallback = function () {
-                self.isExecuting(false);
-            };
+        self.bindingCompleteFunction = function () { };
+        var completeCallback = function () {
+            self.isExecuting(false);
+            self.bindingCompleteFunction();
+        };
 
-        self.isExecuting = ko.observable();
+        self.isExecuting = ko.observable(false);
 
         if (ko.isComputed(canExecuteDelegate)) {
             self.canExecute = ko.computed({
@@ -66,12 +68,12 @@
                 read: function () {
                     return !self.isExecuting() && canExecuteDelegate();
                 }
-            });
+            }, self).extend({ notify: 'always' });
         }
         else {
             self.canExecute = ko.computed(function () {
-                return canExecuteDelegate ? canExecuteDelegate(self.isExecuting()) : !self.isExecuting();
-            });
+                return (canExecuteDelegate ? canExecuteDelegate(self.isExecuting()) : !self.isExecuting());
+            }).extend({ notify: 'always' });
         }
 
         self.execute = function (arg1, arg2) {
@@ -116,6 +118,7 @@
             };
 
             var subscriptions = [];
+            var isCommandExecuted = [];
 
             var initBindingHandlers = function () {
                 for (var command in commands) {
@@ -124,6 +127,18 @@
                     };
 
                     var action = commands[command];
+
+                    var hasBeenExecuted = false;
+                    isCommandExecuted[command] = hasBeenExecuted;
+
+                    var oldExecute = action.execute;
+                    action.execute = function (arg1, arg2) {
+                        isCommandExecuted[command] = true;
+                        oldExecute(arg1, arg2);
+                    }
+                    action.bindingCompleteFunction = function () {
+                        isCommandExecuted[command] = false;
+                    }
 
                     ko.bindingHandlers[command].init(
                         element,
@@ -135,9 +150,11 @@
 
                     if (showActivity && action.isExecuting) {
                         subscriptions[command] = action.isExecuting.subscribe(function (newValue) {
-                            setTimeout(function () {
-                                $(element).activityEx(newValue)
-                            }, 10);
+                            if (isCommandExecuted[command]) {
+                                setTimeout(function () {
+                                    $(element).activityEx(newValue)
+                                }, 10);
+                            }
                         });
                     }
                 }
@@ -191,12 +208,6 @@
             if (!canExecute) {
                 return;
             }
-
-            /*
-            if (showActivity && typeof showActivity === 'boolean') {
-                var activity = commands.isExecuting();
-                $(element).activityEx(activity);
-            }*/
 
             ko.bindingHandlers.enable.update(element, canExecute, allBindingsAccessor, viewModel, bindingContext);
         }
