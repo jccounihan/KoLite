@@ -1,4 +1,4 @@
-﻿// By: Hans Fjällemark and John Papa
+// By: Hans Fjällemark and John Papa
 // https://github.com/CodeSeven/KoLite
 //
 // Knockout.DirtyFlag
@@ -43,6 +43,25 @@
         throw 'Knockout is required, please ensure it is loaded before loading the dirty flag plug-in';
     }
 
+    function getFirstDiffIndex(oldText, newText) {
+        // Find the index at which the change began
+        var s = 0;
+        while (s < oldText.length && s < newText.length && oldText[s] == newText[s]) {
+            s++;
+        }
+
+        return s;
+    };
+
+    function getPropertyAndValueFromString(str, index) {
+        var beginOfValue = str.lastIndexOf(":", index);
+        var endOfValue = str.indexOf(",", index);
+
+        var beginOfProperty = str.lastIndexOf(",", index);
+
+        return str.substring(beginOfProperty + 1, endOfValue);
+    };
+
     exports.DirtyFlag = function (objectToTrack, isInitiallyDirty, hashFunction) {
 
         hashFunction = hashFunction || ko.toJSON;
@@ -54,8 +73,7 @@
             _isInitiallyDirty = ko.observable(isInitiallyDirty),
 
             result = function () {
-                self.forceDirty = function ()
-                {
+                self.forceDirty = function () {
                     _isInitiallyDirty(true);
                 };
 
@@ -67,14 +85,28 @@
                     _lastCleanState(hashFunction(_objectToTrack));
                     _isInitiallyDirty(false);
                 };
-                
+
                 self.logState = function () {
                     if (console && typeof console.log === "function") {
                         console.log("LastCleanState: " + _lastCleanState());
                         console.log("CurrentState: " + hashFunction(_objectToTrack));
                     }
                 };
-                
+
+                self.displayDiff = function () {
+                    if (console && typeof console.log === "function") {
+                        var lcs = _lastCleanState();
+                        var cs = hashFunction(_objectToTrack);
+
+                        var index = getFirstDiffIndex(lcs, cs);
+                        var lcsDisplay = getPropertyAndValueFromString(lcs, index);
+                        var csDisplay = getPropertyAndValueFromString(cs, index);
+
+                        console.log("LastCleanState Changed Property: " + lcsDisplay);
+                        console.log("CurrentState Changed Property: " + csDisplay);
+                    }                    
+                };
+
                 return self;
             };
 
