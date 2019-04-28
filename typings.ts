@@ -1,13 +1,12 @@
 /*
 Typescript definitions
 */
-
 interface KnockoutStatic {
     DirtyFlag: KnockoutDirtyFlag;
 }
 
 interface KnockoutDirtyFlag {
-    new(objectToTrack: any, isInitiallyDirty: boolean, hashFunction?: any): KnockoutDirtyFlagResult;
+    new(objectToTrack: Object, isInitiallyDirty: boolean, hashFunction?: Function): KnockoutDirtyFlagResult;
 }
 
 interface KnockoutDirtyFlagResult {
