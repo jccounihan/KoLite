@@ -65,51 +65,51 @@
     exports.DirtyFlag = function (objectToTrack, isInitiallyDirty, hashFunction) {
 
         hashFunction = hashFunction || ko.toJSON;
+        var item = this;
 
-        var
-            self = this,
-            _objectToTrack = objectToTrack,
-            _lastCleanState = ko.observable(hashFunction(_objectToTrack)),
-            _isInitiallyDirty = ko.observable(isInitiallyDirty),
+        var _objectToTrack = objectToTrack;
+        var _lastCleanState = ko.observable(hashFunction(_objectToTrack));
+        var _isInitiallyDirty = ko.observable(isInitiallyDirty);
 
-            result = function () {
-                self.forceDirty = function () {
-                    _isInitiallyDirty(true);
-                };
+        var result = function () {
 
-                self.isDirty = ko.computed(function () {
-                    return _isInitiallyDirty() || hashFunction(_objectToTrack) !== _lastCleanState();
-                });
-
-                self.reset = function () {
-                    _lastCleanState(hashFunction(_objectToTrack));
-                    _isInitiallyDirty(false);
-                };
-
-                self.logState = function () {
-                    if (console && typeof console.log === "function") {
-                        console.log("LastCleanState: " + _lastCleanState());
-                        console.log("CurrentState: " + hashFunction(_objectToTrack));
-                    }
-                };
-
-                self.displayDiff = function () {
-                    if (console && typeof console.log === "function") {
-                        var lcs = _lastCleanState();
-                        var cs = hashFunction(_objectToTrack);
-
-                        var index = getFirstDiffIndex(lcs, cs);
-                        var lcsDisplay = getPropertyAndValueFromString(lcs, index);
-                        var csDisplay = getPropertyAndValueFromString(cs, index);
-
-                        console.log("LastCleanState Changed Property: " + lcsDisplay);
-                        console.log("CurrentState Changed Property: " + csDisplay);
-                    }                    
-                };
-
-                return self;
+            item.forceDirty = function () {
+                _isInitiallyDirty(true);
             };
 
-        return result;
+            item.isDirty = ko.computed(function () {
+                return _isInitiallyDirty() || hashFunction(_objectToTrack) !== _lastCleanState();
+            });
+
+            item.reset = function () {
+                _lastCleanState(hashFunction(_objectToTrack));
+                _isInitiallyDirty(false);
+            };
+
+            item.logState = function () {
+                if (console && typeof console.log === "function") {
+                    console.log("LastCleanState: " + _lastCleanState());
+                    console.log("CurrentState: " + hashFunction(_objectToTrack));
+                }
+            };
+
+            item.displayDiff = function () {
+                if (console && typeof console.log === "function") {
+                    var lcs = _lastCleanState();
+                    var cs = hashFunction(_objectToTrack);
+
+                    var index = getFirstDiffIndex(lcs, cs);
+                    var lcsDisplay = getPropertyAndValueFromString(lcs, index);
+                    var csDisplay = getPropertyAndValueFromString(cs, index);
+
+                    console.log("LastCleanState Changed Property: " + lcsDisplay);
+                    console.log("CurrentState Changed Property: " + csDisplay);
+                }
+            };
+
+            return item;
+        };
+
+        return result();
     };
 }));
